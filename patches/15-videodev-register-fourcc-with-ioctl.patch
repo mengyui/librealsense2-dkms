@@ -7,14 +7,14 @@ Date: Thu, 30 Aug 2018 16:07:01 +0300
 Subject: [PATCH] RS4xx, ZR300, RS5 Pixel formats patch
 Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 6 +++++
- 1 files changed, 5 insertions(+)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 7 +++++
+ 1 files changed, 6 insertions(+)
 
 diff --git a/4.4.0/drivers/media/v4l2-core/v4l2-ioctl.c b/4.4.0/drivers/media/v4l2-core/v4l2-ioctl.c
 index 7486af2..124dd35 100644
 --- a/4.4.0/drivers/media/v4l2-core/v4l2-ioctl.c
 +++ b/4.4.0/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1229,6 +1229,16 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+@@ -1229,6 +1229,17 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
  	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
  	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
  	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
@@ -28,6 +28,7 @@ index 7486af2..124dd35 100644
 +	case V4L2_PIX_FMT_FG:		descr = "Frame Grabber (FG  )"; break;
 +	case V4L2_PIX_FMT_INZC:		descr = "Planar Depth/Confidence (INZC)"; break;
 +	case V4L2_PIX_FMT_PAIR:		descr = "Relative IR (PAIR)"; break;
++	case V4L2_PIX_FMT_Z16H:		descr = "Z16 Huffman Compression"; break;
  
  	default:
  		/* Compressed formats */

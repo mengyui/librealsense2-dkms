@@ -2,7 +2,7 @@ From e94e55724236aabf8b8f9e0e140f8fa98ffd0315 Mon Sep 17 00:00:00 2001
 From: Evgeni <evgeni.raikhel@intel.com>
 From: Elad Zucker <eladx.zucker@intel.com>
 From: icarpis <itay.carpis@intel.com>
-Date: Sun, 13 May 2018 10:44:10 -0400
+Date: Tue, 7 Jan 2019 11:04:21 +0200
 Subject: [PATCH] Enabling UVC Metadata attributes with Ubuntu 18.04 
 (Bionic Beaver) and Kernel version 4.15
 	
@@ -18,7 +18,7 @@ diff --git a/4.15.0-55/drivers/media/usb/uvc/uvc_driver.c b/4.15.0-55/drivers/me
 index f50a2b148..534f49135 100644
 --- a/4.15.0-55/drivers/media/usb/uvc/uvc_driver.c
 +++ b/4.15.0-55/drivers/media/usb/uvc/uvc_driver.c
-@@ -2771,6 +2771,231 @@ static const struct usb_device_id uvc_ids[] = {
+@@ -2771,6 +2771,249 @@ static const struct usb_device_id uvc_ids[] = {
  	  .bInterfaceSubClass	= 1,
  	  .bInterfaceProtocol	= 0,
  	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
@@ -243,6 +243,24 @@ index f50a2b148..534f49135 100644
 +				| USB_DEVICE_ID_MATCH_INT_INFO,
 +	  .idVendor			= 0x8086,
 +	  .idProduct		= 0x0b4d,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_APPEND_UVC_HEADER },
++	  /* Intel D405 */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor			= 0x8086,
++	  .idProduct		= 0x0b5b,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_APPEND_UVC_HEADER },
++	  /* Intel D455 */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor			= 0x8086,
++	  .idProduct		= 0x0b5c,
 +	  .bInterfaceClass	= USB_CLASS_VIDEO,
 +	  .bInterfaceSubClass	= 1,
 +	  .bInterfaceProtocol	= 0,
