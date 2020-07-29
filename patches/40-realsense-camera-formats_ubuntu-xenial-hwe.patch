@@ -5,17 +5,17 @@ Subject: [PATCH] realsense formats patch for kernel 4.13
 
 Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c   | 32 ++++++++++++++++++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h     | 19 +++++++++++++++++++
+ drivers/media/usb/uvc/uvc_driver.c   | 37 ++++++++++++++++++++++++++++++++
+ drivers/media/usb/uvc/uvcvideo.h     | 22 +++++++++++++++++++
  drivers/media/v4l2-core/v4l2-ioctl.c |  3 +++
- include/uapi/linux/videodev2.h       |  2 ++
+ include/uapi/linux/videodev2.h       |  3 ++
  4 files changed, 56 insertions(+)
 
 diff --git a/4.13.0/drivers/media/usb/uvc/uvc_driver.c b/4.13.0/drivers/media/usb/uvc/uvc_driver.c
 index 70842c5..9b67002 100644
 --- a/4.13.0/drivers/media/usb/uvc/uvc_driver.c
 +++ b/4.13.0/drivers/media/usb/uvc/uvc_driver.c
-@@ -203,6 +203,38 @@ static struct uvc_format_desc uvc_fmts[] = {
+@@ -203,6 +203,43 @@ static struct uvc_format_desc uvc_fmts[] = {
  		.guid		= UVC_GUID_FORMAT_INZI,
  		.fcc		= V4L2_PIX_FMT_INZI,
  	},
@@ -33,6 +33,11 @@ index 70842c5..9b67002 100644
 +		.name		= "Packed raw data 10-bit",
 +		.guid		= UVC_GUID_FORMAT_W10,
 +		.fcc		= V4L2_PIX_FMT_W10,
++	},
++	{
++		.name		= "Confidence data (C   )",
++		.guid		= UVC_GUID_FORMAT_CONFIDENCE_MAP,
++		.fcc		= V4L2_PIX_FMT_CONFIDENCE_MAP,
 +	},
 +	/* FishEye 8-bit monochrome */
 +	{
@@ -58,7 +63,7 @@ diff --git a/4.13.0/drivers/media/usb/uvc/uvcvideo.h b/4.13.0/drivers/media/usb/
 index 15e415e..d01c2c2 100644
 --- a/4.13.0/drivers/media/usb/uvc/uvcvideo.h
 +++ b/4.13.0/drivers/media/usb/uvc/uvcvideo.h
-@@ -152,6 +152,25 @@
+@@ -152,6 +152,28 @@
  #define UVC_GUID_FORMAT_INVI \
  	{ 'I',  'N',  'V',  'I', 0xdb, 0x57, 0x49, 0x5e, \
  	 0x8e, 0x3f, 0xf4, 0x79, 0x53, 0x2b, 0x94, 0x6f}
@@ -74,6 +79,9 @@ index 15e415e..d01c2c2 100644
 +#define UVC_GUID_FORMAT_RAW8 \
 +	{ 'R',  'A',  'W',  '8', 0x66, 0x1a, 0x42, 0xa2, \
 +	0x90, 0x65, 0xd0, 0x18, 0x14, 0xa8, 0xef, 0x8a}
++#define UVC_GUID_FORMAT_CONFIDENCE_MAP \
++	{ 'C',  ' ',  ' ',  ' ', 0x00, 0x00, 0x10, 0x00, \
++	0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
 +/* Legacy formats */
 +#define UVC_GUID_FORMAT_RW16 \
 +	{ 'R',  'W',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
@@ -88,13 +96,14 @@ diff --git a/4.13.0/drivers/media/v4l2-core/v4l2-ioctl.c b/4.13.0/drivers/media/
 index cab63bb..85935a9 100644
 --- a/4.13.0/drivers/media/v4l2-core/v4l2-ioctl.c
 +++ b/4.13.0/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1239,6 +1239,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+@@ -1239,6 +1239,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
  	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
  	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
  	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
 +	/* Librealsense formats*/
 +	case V4L2_PIX_FMT_RW16:		descr = "16-bit Raw data"; break;
 +	case V4L2_PIX_FMT_W10:		descr = "10-bit packed 8888[2222]"; break;
++	case V4L2_PIX_FMT_CONFIDENCE_MAP:		descr = "4-bit per pixel packed into 8 bit"; break;
 
  	default:
  		/* Compressed formats */
@@ -102,12 +111,13 @@ diff --git a/4.13.0/include-overrides/uapi/linux/videodev2.h b/4.13.0/include-ov
 index 45cf735..7d3a43b 100644
 --- a/4.13.0/include-overrides/uapi/linux/videodev2.h
 +++ b/4.13.0/include-overrides/uapi/linux/videodev2.h
-@@ -662,6 +662,8 @@ struct v4l2_pix_format {
+@@ -662,6 +662,9 @@ struct v4l2_pix_format {
  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
  #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
  #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
 +#define V4L2_PIX_FMT_RW16	v4l2_fourcc('R', 'W', '1', '6') /* Raw data 16-bit */
 +#define V4L2_PIX_FMT_W10	v4l2_fourcc('W', '1', '0', ' ') /* Packed raw data 10-bit */
++#define V4L2_PIX_FMT_CONFIDENCE_MAP  v4l2_fourcc('C', ' ', ' ', ' ') /* Two pixels in one byte */
 
  /* SDR formats - used only for Software Defined Radio devices */
  #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
