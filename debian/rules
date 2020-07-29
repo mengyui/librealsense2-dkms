@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+
+#export DH_VERBOSE = 1
+include /usr/share/dpkg/pkg-info.mk
+
+%:
+	dh $@ --with dkms
+
+override_dh_auto_configure:
+override_dh_auto_build:
+override_dh_auto_test:
+override_dh_auto_install:
+override_dh_auto_clean:
+
+override_dh_install:
+	dh_install -Xdebian -Xdkms.conf \
+	    * usr/src/librealsense2-dkms-$(DEB_VERSION_UPSTREAM)
+
+override_dh_dkms: dkms.conf
+	dh_dkms -- dkms.conf

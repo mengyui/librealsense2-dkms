@@ -1,0 +1,5 @@
+librealsense2-dkms (1.3.14-0ubuntu1) groovy; urgency=low
+
+  * Rebuild source package from binary release of 1.3.14-0ubuntu1.
+
+ -- You-Sheng Yang <vicamo.yang@canonical.com>  Wed, 29 Jul 2020 14:47:48 +0800
