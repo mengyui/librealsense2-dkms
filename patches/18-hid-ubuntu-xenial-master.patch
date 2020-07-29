@@ -1,0 +1,217 @@
+From 6512d4b565958b1accd362133d43e37be2fdb6dc Mon Sep 17 00:00:00 2001
+From: Srinivas Pandruvada <srinivas.pandruvada@intel.com>
+From: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Date: Mon, 26 Feb 2018 10:11:31 +0200
+Subject: [PATCH] Kernel patch to enable HID timestamps and events for Realsense Motion tracking sensors
+
+---
+ drivers/iio/accel/Makefile              |  2 ++
+ drivers/iio/accel/hid-sensor-accel-3d.c | 31 +++++++++++++++++++++++--------
+ drivers/iio/gyro/Makefile               |  2 ++
+ drivers/iio/gyro/hid-sensor-gyro-3d.c   | 31 +++++++++++++++++++++++--------
+ 4 files changed, 50 insertions(+), 16 deletions(-)
+
+diff --git a/4.4.0/drivers/iio/accel/Makefile b/4.4.0/drivers/iio/accel/Makefile
+index 7925f16..32095e7 100644
+--- a/4.4.0/drivers/iio/accel/Makefile
++++ b/4.4.0/drivers/iio/accel/Makefile
+@@ -1,6 +1,8 @@
+ #
+ # Makefile for industrial I/O accelerometer drivers
+ #
++CC := ${CC} -I ${M}/../../../include-overrides
++CONFIG_MODULE_SIG=n
+
+ # When adding new entries keep the list in alphabetical order
+ obj-$(CONFIG_BMA180) += bma180.o
+diff --git a/4.4.0/drivers/iio/accel/hid-sensor-accel-3d.c b/4.4.0/drivers/iio/accel/hid-sensor-accel-3d.c
+index ab1e238..98e5d8a 100644
+--- a/4.4.0/drivers/iio/accel/hid-sensor-accel-3d.c
++++ b/4.4.0/drivers/iio/accel/hid-sensor-accel-3d.c
+@@ -42,11 +42,13 @@ struct accel_3d_state {
+ 	struct hid_sensor_hub_callbacks callbacks;
+ 	struct hid_sensor_common common_attributes;
+ 	struct hid_sensor_hub_attribute_info accel[ACCEL_3D_CHANNEL_MAX];
+-	u32 accel_val[ACCEL_3D_CHANNEL_MAX];
++	/* Reserve for 3 channels + padding + timestamp */
++	u32 accel_val[ACCEL_3D_CHANNEL_MAX + 3];
+ 	int scale_pre_decml;
+ 	int scale_post_decml;
+ 	int scale_precision;
+ 	int value_offset;
++	int64_t timestamp;
+ };
+
+ static const u32 accel_3d_addresses[ACCEL_3D_CHANNEL_MAX] = {
+@@ -87,7 +89,8 @@ static const struct iio_chan_spec accel_3d_channels[] = {
+ 		BIT(IIO_CHAN_INFO_SAMP_FREQ) |
+ 		BIT(IIO_CHAN_INFO_HYSTERESIS),
+ 		.scan_index = CHANNEL_SCAN_INDEX_Z,
+-	}
++	},
++	IIO_CHAN_SOFT_TIMESTAMP(3)
+ };
+
+ /* Adjust channel real bits based on report descriptor */
+@@ -192,11 +195,11 @@ static const struct iio_info accel_3d_info = {
+ };
+
+ /* Function to push data to buffer */
+-static void hid_sensor_push_data(struct iio_dev *indio_dev, const void *data,
+-	int len)
++static void hid_sensor_push_data(struct iio_dev *indio_dev, void *data,
++				 int len, int64_t timestamp)
+ {
+ 	dev_dbg(&indio_dev->dev, "hid_sensor_push_data\n");
+-	iio_push_to_buffers(indio_dev, data);
++	iio_push_to_buffers_with_timestamp(indio_dev, data, timestamp);
+ }
+
+ /* Callback handler to send event after all samples are received and captured */
+@@ -208,10 +211,17 @@ static int accel_3d_proc_event(struct hid_sensor_hub_device *hsdev,
+ 	struct accel_3d_state *accel_state = iio_priv(indio_dev);
+
+ 	dev_dbg(&indio_dev->dev, "accel_3d_proc_event\n");
+-	if (atomic_read(&accel_state->common_attributes.data_ready))
+-		hid_sensor_push_data(indio_dev,
+-				accel_state->accel_val,
+-				sizeof(accel_state->accel_val));
++	if (atomic_read(&accel_state->common_attributes.data_ready)) {
++		if (!accel_state->timestamp)
++			accel_state->timestamp = iio_get_time_ns();
++
++		hid_sensor_push_data(indio_dev,
++				     accel_state->accel_val,
++				     sizeof(accel_state->accel_val),
++				     accel_state->timestamp);
++
++		accel_state->timestamp = 0;
++	}
+
+ 	return 0;
+ }
+@@ -236,6 +246,10 @@ static int accel_3d_capture_sample(struct hid_sensor_hub_device *hsdev,
+ 						*(u32 *)raw_data;
+ 		ret = 0;
+ 	break;
++	case HID_USAGE_SENSOR_TIME_TIMESTAMP:
++		accel_state->timestamp = *(int64_t *)raw_data;
++		ret = 0;
++	break;
+ 	default:
+ 		break;
+ 	}
+@@ -422,3 +436,4 @@ module_platform_driver(hid_accel_3d_platform_driver);
+ MODULE_DESCRIPTION("HID Sensor Accel 3D");
+ MODULE_AUTHOR("Srinivas Pandruvada <srinivas.pandruvada@intel.com>");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION("realsense2-dkms");
+diff --git a/4.4.0/drivers/iio/gyro/Makefile b/4.4.0/drivers/iio/gyro/Makefile
+index f866a4be..5c4a371 100644
+--- a/4.4.0/drivers/iio/gyro/Makefile
++++ b/4.4.0/drivers/iio/gyro/Makefile
+@@ -1,6 +1,8 @@
+ #
+ # Makefile for industrial I/O gyroscope sensor drivers
+ #
++CC := ${CC} -I ${M}/../../../include-overrides
++CONFIG_MODULE_SIG=n
+
+ # When adding new entries keep the list in alphabetical order
+ obj-$(CONFIG_ADIS16080) += adis16080.o
+diff --git a/4.4.0/drivers/iio/gyro/hid-sensor-gyro-3d.c b/4.4.0/drivers/iio/gyro/hid-sensor-gyro-3d.c
+index c67ce2a..88afa66 100644
+--- a/4.4.0/drivers/iio/gyro/hid-sensor-gyro-3d.c
++++ b/4.4.0/drivers/iio/gyro/hid-sensor-gyro-3d.c
+@@ -42,11 +42,13 @@ struct gyro_3d_state {
+ 	struct hid_sensor_hub_callbacks callbacks;
+ 	struct hid_sensor_common common_attributes;
+ 	struct hid_sensor_hub_attribute_info gyro[GYRO_3D_CHANNEL_MAX];
+-	u32 gyro_val[GYRO_3D_CHANNEL_MAX];
++	/* Reserve for 3 channels + padding + timestamp */
++	u32 gyro_val[GYRO_3D_CHANNEL_MAX + 3];
+ 	int scale_pre_decml;
+ 	int scale_post_decml;
+ 	int scale_precision;
+ 	int value_offset;
++	int64_t timestamp;
+ };
+
+ static const u32 gyro_3d_addresses[GYRO_3D_CHANNEL_MAX] = {
+@@ -87,7 +89,8 @@ static const struct iio_chan_spec gyro_3d_channels[] = {
+ 		BIT(IIO_CHAN_INFO_SAMP_FREQ) |
+ 		BIT(IIO_CHAN_INFO_HYSTERESIS),
+ 		.scan_index = CHANNEL_SCAN_INDEX_Z,
+-	}
++	},
++	IIO_CHAN_SOFT_TIMESTAMP(3)
+ };
+
+ /* Adjust channel real bits based on report descriptor */
+@@ -192,11 +195,11 @@ static const struct iio_info gyro_3d_info = {
+ };
+
+ /* Function to push data to buffer */
+-static void hid_sensor_push_data(struct iio_dev *indio_dev, const void *data,
+-	int len)
++static void hid_sensor_push_data(struct iio_dev *indio_dev, void *data,
++				 int len, int64_t timestamp)
+ {
+ 	dev_dbg(&indio_dev->dev, "hid_sensor_push_data\n");
+-	iio_push_to_buffers(indio_dev, data);
++	iio_push_to_buffers_with_timestamp(indio_dev, data, timestamp);
+ }
+
+ /* Callback handler to send event after all samples are received and captured */
+@@ -208,10 +211,17 @@ static int gyro_3d_proc_event(struct hid_sensor_hub_device *hsdev,
+ 	struct gyro_3d_state *gyro_state = iio_priv(indio_dev);
+
+ 	dev_dbg(&indio_dev->dev, "gyro_3d_proc_event\n");
+-	if (atomic_read(&gyro_state->common_attributes.data_ready))
++	if (atomic_read(&gyro_state->common_attributes.data_ready)) {
++		if (!gyro_state->timestamp)
++			gyro_state->timestamp = iio_get_time_ns();
++
+ 		hid_sensor_push_data(indio_dev,
+-				gyro_state->gyro_val,
+-				sizeof(gyro_state->gyro_val));
++				     gyro_state->gyro_val,
++				     sizeof(gyro_state->gyro_val),
++				     gyro_state->timestamp);
++
++		gyro_state->timestamp = 0;
++	}
+
+ 	return 0;
+ }
+@@ -236,6 +246,10 @@ static int gyro_3d_capture_sample(struct hid_sensor_hub_device *hsdev,
+ 						*(u32 *)raw_data;
+ 		ret = 0;
+ 	break;
++	case HID_USAGE_SENSOR_TIME_TIMESTAMP:
++		gyro_state->timestamp = *(int64_t *)raw_data;
++		ret = 0;
++	break;
+ 	default:
+ 		break;
+ 	}
+@@ -419,3 +433,4 @@ module_platform_driver(hid_gyro_3d_platform_driver);
+ MODULE_DESCRIPTION("HID Sensor Gyroscope 3D");
+ MODULE_AUTHOR("Srinivas Pandruvada <srinivas.pandruvada@intel.com>");
+ MODULE_LICENSE("GPL");
++MODULE_VERSION("realsense2-dkms");
+diff --git a/4.4.0/include-overrides/linux/hid-sensor-ids.h b/4.4.0/include-overrides/include/linux/hid-sensor-ids.h
+index f2ee90a..9a3a9db 100644
+--- a/4.4.0/include-overrides/linux/hid-sensor-ids.h
++++ b/4.4.0/include-overrides/linux/hid-sensor-ids.h
+@@ -95,6 +95,7 @@
+ #define HID_USAGE_SENSOR_TIME_HOUR				0x200525
+ #define HID_USAGE_SENSOR_TIME_MINUTE				0x200526
+ #define HID_USAGE_SENSOR_TIME_SECOND				0x200527
++#define HID_USAGE_SENSOR_TIME_TIMESTAMP			0x200529
+
+ /* Units */
+ #define HID_USAGE_SENSOR_UNITS_NOT_SPECIFIED			0x00
+--
+2.7.4
+

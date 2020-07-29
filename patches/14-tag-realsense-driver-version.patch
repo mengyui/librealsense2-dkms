@@ -1,0 +1,32 @@
+diff --git a/4.4.0/drivers/media/usb/uvc/Makefile b/4.4.0/drivers/media/usb/uvc/Makefile
+index 8863569..2d25551 100644
+--- a/4.4.0/drivers/media/usb/uvc/Makefile
++++ b/4.4.0/drivers/media/usb/uvc/Makefile
+@@ -1,6 +1,8 @@
+ CC := ${CC} -I ${M}/include-overrides
+ CONFIG_MODULE_SIG=n
+
++ccflags-y := -DDRIVER_VERSION_SUFFIX=\"${DRIVER_VERSION_SUFFIX}\"
++
+ uvcvideo-objs  := uvc_driver.o uvc_queue.o uvc_v4l2.o uvc_video.o uvc_ctrl.o \
+                  uvc_status.o uvc_isight.o uvc_debugfs.o
+ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+
+
+diff --git a/4.4.0/drivers/media/usb/uvc/uvcvideo.h.orig b/4.4.0/drivers/media/usb/uvc/uvcvideo.h
+index e007d1c..06eba4a 100644
+--- a/4.4.0/drivers/media/usb/uvc/uvcvideo.h
++++ b/4.4.0/drivers/media/usb/uvc/uvcvideo.h
+@@ -199,7 +199,11 @@
+  * Driver specific constants.
+  */
+ 
+-#define DRIVER_VERSION		"1.1.1"
++#ifndef DRIVER_VERSION_SUFFIX
++#define DRIVER_VERSION_SUFFIX
++#endif
++
++#define DRIVER_VERSION		"1.1.2" DRIVER_VERSION_SUFFIX
+ 
+ /* Number of isochronous URBs. */
+ #define UVC_URBS		5

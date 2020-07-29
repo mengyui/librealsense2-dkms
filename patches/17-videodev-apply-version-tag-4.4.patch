@@ -1,0 +1,22 @@
+From 6d4a3ca76ddd09d9138db77b6f0611949f1c2b73 Mon Sep 17 00:00:00 2001
+From: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Date: Thu, 27 Jul 2017 11:27:04 +0300
+Subject: [PATCH] Inject RealSense version tag for module discrimination
+
+Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/4.4.0/drivers/media/v4l2-core/v4l2-dev.c b/4.4.0/drivers/media/v4l2-core/v4l2-dev.c
+index 6b1eaed..e849a46 100644
+--- a/4.4.0/drivers/media/v4l2-core/v4l2-dev.c
++++ b/4.4.0/drivers/media/v4l2-core/v4l2-dev.c
+@@ -1016,3 +1016,4 @@ MODULE_AUTHOR("Alan Cox, Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_DESCRIPTION("Device registrar for Video4Linux drivers v2");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_CHARDEV_MAJOR(VIDEO_MAJOR);
++MODULE_VERSION("realsense2-dkms");
+-- 
+2.7.4
+

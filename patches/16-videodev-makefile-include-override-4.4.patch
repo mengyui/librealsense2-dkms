@@ -1,0 +1,26 @@
+From 1f8889480343febd5bfe86b59ff18524aabcd2dc Mon Sep 17 00:00:00 2001
+From: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Date: Tue, 25 Jul 2017 14:29:38 +0300
+Subject: [PATCH] Instruct the driver to access additional include pathes
+ during build. Required for DKSM
+
+Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+---
+ drivers/media/v4l2-core/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/4.4.0/drivers/media/v4l2-core/Makefile b/4.4.0/drivers/media/v4l2-core/Makefile
+index 1dc8bba..049de2a 100644
+--- a/4.4.0/drivers/media/v4l2-core/Makefile
++++ b/4.4.0/drivers/media/v4l2-core/Makefile
+@@ -1,6 +1,7 @@
+ #
+ # Makefile for the V4L2 core
+ #
++CC := ${CC} -I ${M}/../../../include-overrides -I ${M}/../tuners -I ${M}/../dvb-core -I ${M}/../dvb-frontends
+ 
+ tuner-objs	:=	tuner-core.o
+ 
+-- 
+2.7.4
+
