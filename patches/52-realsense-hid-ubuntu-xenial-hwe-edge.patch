@@ -19,6 +19,14 @@ diff --git a/4.15.0/drivers/iio/gyro/hid-sensor-gyro-3d.c b/4.15.0/drivers/iio/g
 index 39de79c..88bd2d0 100644
 --- a/4.15.0/drivers/iio/accel/hid-sensor-accel-3d.c
 +++ b/4.15.0/drivers/iio/accel/hid-sensor-accel-3d.c
+@@ -286,6 +286,7 @@ static int accel_3d_capture_sample(struct hid_sensor_hub_device *hsdev,
+ 			hid_sensor_convert_timestamp(
+ 					&accel_state->common_attributes,
+ 					*(int64_t *)raw_data);
++		ret = 0;
+ 	break;
+ 	default:
+ 		break;
 @@ -438,3 +438,4 @@ module_platform_driver(hid_accel_3d_platform_driver);
  MODULE_DESCRIPTION("HID Sensor Accel 3D");
  MODULE_AUTHOR("Srinivas Pandruvada <srinivas.pandruvada@intel.com>");
@@ -88,12 +96,15 @@ index c67ce2a..e722b8f 100644
  
  	return 0;
  }
-@@ -235,6 +245,10 @@ static int gyro_3d_capture_sample(struct hid_sensor_hub_device *hsdev,
+@@ -235,6 +245,13 @@ static int gyro_3d_capture_sample(struct hid_sensor_hub_device *hsdev,
  						*(u32 *)raw_data;
  		ret = 0;
  	break;
 +	case HID_USAGE_SENSOR_TIME_TIMESTAMP:
-+		gyro_state->timestamp = *(int64_t *)raw_data;
++		gyro_state->timestamp =
++			hid_sensor_convert_timestamp(
++					&gyro_state->common_attributes,
++					*(int64_t *)raw_data);
 +		ret = 0;
 +	break;
  	default:

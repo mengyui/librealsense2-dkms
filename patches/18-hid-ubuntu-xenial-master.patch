@@ -41,7 +41,7 @@ index ab1e238..98e5d8a 100644
  	int value_offset;
 +	int64_t timestamp;
  };
-
+ 
  static const u32 accel_3d_addresses[ACCEL_3D_CHANNEL_MAX] = {
 @@ -87,7 +89,8 @@ static const struct iio_chan_spec accel_3d_channels[] = {
  		BIT(IIO_CHAN_INFO_SAMP_FREQ) |
@@ -51,11 +51,11 @@ index ab1e238..98e5d8a 100644
 +	},
 +	IIO_CHAN_SOFT_TIMESTAMP(3)
  };
-
+ 
  /* Adjust channel real bits based on report descriptor */
 @@ -192,11 +195,11 @@ static const struct iio_info accel_3d_info = {
  };
-
+ 
  /* Function to push data to buffer */
 -static void hid_sensor_push_data(struct iio_dev *indio_dev, const void *data,
 -	int len)
@@ -66,11 +66,11 @@ index ab1e238..98e5d8a 100644
 -	iio_push_to_buffers(indio_dev, data);
 +	iio_push_to_buffers_with_timestamp(indio_dev, data, timestamp);
  }
-
+ 
  /* Callback handler to send event after all samples are received and captured */
 @@ -208,10 +211,17 @@ static int accel_3d_proc_event(struct hid_sensor_hub_device *hsdev,
  	struct accel_3d_state *accel_state = iio_priv(indio_dev);
-
+ 
  	dev_dbg(&indio_dev->dev, "accel_3d_proc_event\n");
 -	if (atomic_read(&accel_state->common_attributes.data_ready))
 -		hid_sensor_push_data(indio_dev,
@@ -87,15 +87,15 @@ index ab1e238..98e5d8a 100644
 +
 +		accel_state->timestamp = 0;
 +	}
-
+ 
  	return 0;
  }
 @@ -236,6 +246,10 @@ static int accel_3d_capture_sample(struct hid_sensor_hub_device *hsdev,
  						*(u32 *)raw_data;
  		ret = 0;
  	break;
-+	case HID_USAGE_SENSOR_TIME_TIMESTAMP:
-+		accel_state->timestamp = *(int64_t *)raw_data;
++	case HID_USAGE_SENSOR_TIME_TIMESTAMP:	// usec->nsec
++		accel_state->timestamp = (*(int64_t *)raw_data)*1000;
 +		ret = 0;
 +	break;
  	default:
@@ -188,8 +188,8 @@ index c67ce2a..88afa66 100644
  						*(u32 *)raw_data;
  		ret = 0;
  	break;
-+	case HID_USAGE_SENSOR_TIME_TIMESTAMP:
-+		gyro_state->timestamp = *(int64_t *)raw_data;
++	case HID_USAGE_SENSOR_TIME_TIMESTAMP: // usec->nsec
++		gyro_state->timestamp = (*(int64_t *)raw_data)*1000;
 +		ret = 0;
 +	break;
  	default:

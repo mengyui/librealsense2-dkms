@@ -1,5 +1,6 @@
 From 5ef00171f95a150a912f1d14645bcae25df203c9 Mon Sep 17 00:00:00 2001
 From: Srinivas Pandruvada <srinivas.pandruvada@intel.com>
+From: Evgeni Raikhel <evgeni.raikhel@intel.com>
 Date: Tue, 13 Feb 2018 12:06:44 +0200
 Subject: [PATCH] Adding missing HID timestamp patch for Gyro sensor.
 	A symmetric patch for Accelerator was already upstreamed,
@@ -98,8 +99,8 @@ index ab1e238..0f4e002 100644
  						*(u32 *)raw_data;
  		ret = 0;
  	break;
-+	case HID_USAGE_SENSOR_TIME_TIMESTAMP:
-+		accel_state->timestamp = *(int64_t *)raw_data;
++	case HID_USAGE_SENSOR_TIME_TIMESTAMP: // usec->nsec
++		accel_state->timestamp = (*(int64_t *)raw_data)*1000;
 +		ret = 0;
 +	break;
  	default:
@@ -192,8 +193,8 @@ index c67ce2a..e722b8f 100644
  						*(u32 *)raw_data;
  		ret = 0;
  	break;
-+	case HID_USAGE_SENSOR_TIME_TIMESTAMP:
-+		gyro_state->timestamp = *(int64_t *)raw_data;
++	case HID_USAGE_SENSOR_TIME_TIMESTAMP:	// usec->nsec
++		gyro_state->timestamp = (*(int64_t *)raw_data)*1000;
 +		ret = 0;
 +	break;
  	default:
