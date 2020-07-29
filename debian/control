@@ -1,0 +1,35 @@
+Source: librealsense2-dkms
+Section: kernel
+Priority: optional
+Maintainer: Canonical Kernel Hardware Enablement (HWE) Team <canonical-hwe-team@lists.launchpad.net>
+Build-Depends:
+ debhelper-compat (= 12),
+ dkms (>= 2.1.0.0),
+ quilt,
+Standards-Version: 4.5.0
+Rules-Requires-Root: no
+Homepage: https://launchpad.net/ubuntu/+source/librealsense2-dkms
+Vcs-Browser: https://git.launchpad.net/~canonical-hwe-team/ubuntu/+source/librealsense2-dkms/+git/librealsense2-dkms
+Vcs-Git: https://code.launchpad.net/~canonical-hwe-team/ubuntu/+source/librealsense2-dkms/+git/librealsense2-dkms
+
+Package: librealsense2-dkms
+Architecture: all
+Depends:
+ ${misc:Depends},
+ dkms (>= 2.1.0.0),
+Provides:
+ librealsense2-modules,
+Recommends:
+ librealsense2-udev-rules,
+Description: Modified kernel modules for librealsense2
+ uvcvideo - Depth-related 4CC streaming formats definitions and metadata
+            attributes
+ videodev - Registering 4CC with ioctl
+ hid-sensor-gyro-3d - timestamps for gyro samples
+ hid-sensor-accel-3d - timestamps for accelerometer samples
+ .
+ The package uses the DKMS system to automatically compile and install the
+ modified driver on your current and future kernels.
+ .
+ On Debian and Ubuntu systems, supplied driver takes precedence over the
+ existing driver by virtue of module path order.
