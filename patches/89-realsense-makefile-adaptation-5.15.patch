@@ -1,0 +1,70 @@
+From d177479b46ec0fdd8597c78a85078964cf65605a Mon Sep 17 00:00:00 2001
+From: Evgeni <evgeni.raikhel@intel.com>
+Date: Sun, 15 Jul 2018 04:49:07 -0400
+Subject: [PATCH] Adjust Makefiles for the kernel modules to be build as part of DKMS
+
+Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+---
+ drivers/media/usb/uvc/Makefile     | 5 +++++
+ drivers/media/usb/uvc/uvcvideo.h   | 7 ++++++-
+ drivers/media/v4l2-core/Makefile   | 2 ++
+ drivers/media/v4l2-core/v4l2-dev.c | 1 +
+ 4 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/5.15.0/drivers/media/usb/uvc/Makefile b/5.15.0/drivers/media/usb/uvc/Makefile
+index a4fe5b5d533f..2f0a798cfdd1 100644
+--- a/5.15.0/drivers/media/usb/uvc/Makefile
++++ b/5.15.0/drivers/media/usb/uvc/Makefile
+@@ -5,3 +5,8 @@ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+ uvcvideo-objs  += uvc_entity.o
+ endif
+ obj-$(CONFIG_USB_VIDEO_CLASS) += uvcvideo.o
++
++#Librealsense-dkms addition
++CONFIG_MODULE_SIG=n
++CC := ${CC} -I ${M}/../../../../include-overrides
++ccflags-y := -DDRIVER_VERSION_SUFFIX=\"${DRIVER_VERSION_SUFFIX}\"
+-- 
+diff --git a/5.15.0/drivers/media/usb/uvc/uvcvideo.h b/5.15.0/drivers/media/usb/uvc/uvcvideo.h
+index 05398784d1c8..e67129fe322d 100644
+--- a/5.15.0/drivers/media/usb/uvc/uvcvideo.h
++++ b/5.15.0/drivers/media/usb/uvc/uvcvideo.h
+@@ -170,7 +170,12 @@
+  * Driver specific constants.
+  */
+ 
+-#define DRIVER_VERSION		"1.1.1"
++/* Librealsense dkms amendments*/
++#ifndef DRIVER_VERSION_SUFFIX
++#define DRIVER_VERSION_SUFFIX
++#endif
++
++#define DRIVER_VERSION		"1.1.2" DRIVER_VERSION_SUFFIX
+ 
+ /* Number of isochronous URBs. */
+ #define UVC_URBS		5
+diff --git a/5.15.0/drivers/media/v4l2-core/Makefile b/5.15.0/drivers/media/v4l2-core/Makefile
+index 77303286aef7..d69e8e761055 100644
+--- a/5.15.0/drivers/media/v4l2-core/Makefile
++++ b/5.15.0/drivers/media/v4l2-core/Makefile
+@@ -2,6 +2,8 @@
+ #
+ # Makefile for the V4L2 core
+ #
++# Librealsense dkms appendix
++CC := ${CC} -I ${M}/../../../include-overrides -I ${M}/../tuners -I ${M}/../dvb-core -I ${M}/../dvb-frontends
+ 
+ tuner-objs	:=	tuner-core.o
+ 
+diff --git a/5.15.0/drivers/media/v4l2-core/v4l2-dev.c b/5.15.0/drivers/media/v4l2-core/v4l2-dev.c
+index c647ba648805..756ec072c32f 100644
+--- a/5.15.0/drivers/media/v4l2-core/v4l2-dev.c
++++ b/5.15.0/drivers/media/v4l2-core/v4l2-dev.c
+@@ -1093,3 +1093,4 @@ MODULE_AUTHOR("Alan Cox, Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_DESCRIPTION("Device registrar for Video4Linux drivers v2");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_CHARDEV_MAJOR(VIDEO_MAJOR);
++MODULE_VERSION("realsense2-dkms");
+-- 
+2.17.1
+
