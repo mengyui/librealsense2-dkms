@@ -1,0 +1,12 @@
+diff --git a/4.9/drivers/iio/accel/hid-sensor-accel-3d.c b/4.9/drivers/iio/accel/hid-sensor-accel-3d.c
+index 39de79ce..b9ac4aa6 100644
+--- a/4.9/drivers/iio/accel/hid-sensor-accel-3d.c
++++ b/4.9/drivers/iio/accel/hid-sensor-accel-3d.c
+@@ -251,6 +251,7 @@ static int accel_3d_capture_sample(struct hid_sensor_hub_device *hsdev,
+ 			hid_sensor_convert_timestamp(
+ 					&accel_state->common_attributes,
+ 					*(int64_t *)raw_data);
++		ret = 0;
+ 	break;
+ 	default:
+ 		break;
