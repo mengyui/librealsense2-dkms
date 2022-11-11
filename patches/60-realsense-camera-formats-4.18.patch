@@ -1,24 +1,36 @@
-Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
-From aa2b05837765037fedd6d2092adf0ad08a68e9ab Mon Sep 17 00:00:00 2001
-From: Evgeni Raikhel <evgeni.raikhel@intel.com>
-From: icarpis <itay.carpis@intel.com>
-Date: Mon, 24 Jun 2019 10:25:39 +0300
-Subject: [PATCH] Streaming formats for Ubuntu 18.04 (Bionic Beaver), Kernel 5.0.0
+From 56e4f9d3c8885fa4de3f0879dbb4909ff92145ac Mon Sep 17 00:00:00 2001
+From: Dmitry Perchanov <dmitry.perchanov@intel.com>
+Date: Thu, 1 Sep 2022 15:16:50 +0300
+Subject: [PATCH] Streaming formats for Ubuntu 18.04 (Bionic Beaver), Kernel 5.0.0 
+From: Evgeni Raikhel <evgeni.raikhel@intel.com> 
+From: icarpis <itay.carpis@intel.com> 
+Y16I
 
-Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Signed-off-by: Dmitry Perchanov <dmitry.perchanov@intel.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c   | 52 ++++++++++++++++++++++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h     | 34 +++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ioctl.c |  8 +++++-
- include/uapi/linux/videodev2.h       |  8 ++++++
- 4 files changed, 101 insertions(+), 1 deletion(-)
-
+ 4.18.0/drivers/media/usb/uvc/uvc_driver.c     | 62 +++++++++++++++++++
+ 4.18.0/drivers/media/usb/uvc/uvcvideo.h       | 40 ++++++++++++
+ 4.18.0/drivers/media/v4l2-core/v4l2-ioctl.c   | 10 +++
+ 4.18.0/include-overrides/uapi/linux/videodev2.h  |  9 +++
+ 4 files changed, 121 insertions(+)
 
 diff --git a/4.18.0/drivers/media/usb/uvc/uvc_driver.c b/4.18.0/drivers/media/usb/uvc/uvc_driver.c
-index 33a22c016..a7b76c987 100644
+index 8e13820..dda591f 100644
 --- a/4.18.0/drivers/media/usb/uvc/uvc_driver.c
 +++ b/4.18.0/drivers/media/usb/uvc/uvc_driver.c
-@@ -203,6 +203,63 @@ static struct uvc_format_desc uvc_fmts[] = {
+@@ -164,6 +164,11 @@ static struct uvc_format_desc uvc_fmts[] = {
+ 		.guid		= UVC_GUID_FORMAT_Y12I,
+ 		.fcc		= V4L2_PIX_FMT_Y12I,
+ 	},
++	{
++		.name		= "Greyscale 16 L/R (Y16I)",
++		.guid		= UVC_GUID_FORMAT_Y16I,
++		.fcc		= V4L2_PIX_FMT_Y16I,
++	},
+ 	{
+ 		.name		= "Depth data 16-bit (Z16)",
+ 		.guid		= UVC_GUID_FORMAT_Z16,
+@@ -209,6 +214,63 @@ static struct uvc_format_desc uvc_fmts[] = {
  		.guid		= UVC_GUID_FORMAT_INZI,
  		.fcc		= V4L2_PIX_FMT_INZI,
  	},
@@ -83,11 +95,21 @@ index 33a22c016..a7b76c987 100644
  
  /* ------------------------------------------------------------------------
 diff --git a/4.18.0/drivers/media/usb/uvc/uvcvideo.h b/4.18.0/drivers/media/usb/uvc/uvcvideo.h
-index 9b41b14ce..4b88f31f5 100644
+index be5cf17..715987a 100644
 --- a/4.18.0/drivers/media/usb/uvc/uvcvideo.h
 +++ b/4.18.0/drivers/media/usb/uvc/uvcvideo.h
-@@ -165,6 +165,43 @@
- 	{0x32, 0x00, 0x00, 0x00, 0x02, 0x00, 0x10, 0x00, \
+@@ -138,6 +138,9 @@
+ #define UVC_GUID_FORMAT_Y12I \
+ 	{ 'Y',  '1',  '2',  'I', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_Y16I \
++	{ 'Y',  '1',  '6',  'I', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+ #define UVC_GUID_FORMAT_Z16 \
+ 	{ 'Z',  '1',  '6',  ' ', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+@@ -158,6 +161,43 @@
+ 	{0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, \
  	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
  
 +#define UVC_GUID_FORMAT_L8 \
@@ -131,10 +153,18 @@ index 9b41b14ce..4b88f31f5 100644
  /* ------------------------------------------------------------------------
   * Driver specific constants.
 diff --git a/4.18.0/drivers/media/v4l2-core/v4l2-ioctl.c b/4.18.0/drivers/media/v4l2-core/v4l2-ioctl.c
-index 90aad465f..e2d757e9a 100644
+index dd21006..caf36eb 100644
 --- a/4.18.0/drivers/media/v4l2-core/v4l2-ioctl.c
 +++ b/4.18.0/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1302,6 +1302,15 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+@@ -1149,6 +1149,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
+ 	case V4L2_PIX_FMT_Y8I:		descr = "Interleaved 8-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y12I:		descr = "Interleaved 12-bit Greyscale"; break;
++	case V4L2_PIX_FMT_Y16I:		descr = "Interleaved 16-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Z16:		descr = "16-bit Depth"; break;
+ 	case V4L2_PIX_FMT_INZI:		descr = "Planar 10:16 Greyscale Depth"; break;
+ 	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
+@@ -1251,6 +1252,15 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
  	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
  	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
  	case V4L2_META_FMT_UVC:		descr = "UVC payload header metadata"; break;
@@ -150,11 +180,15 @@ index 90aad465f..e2d757e9a 100644
  
  	default:
  		/* Compressed formats */
-diff --git a/4.18.0/include/uapi/linux/videodev2.h b/4.18.0/include/uapi/linux/videodev2.h
-index 082dc1439..0bbea2885 100644
+diff --git a/4.18.0/include-overrides/uapi/linux/videodev2.h b/4.18.0/include-overrides/uapi/linux/videodev2.h
+index 082dc14..183e7aa 100644
 --- a/4.18.0/include-overrides/uapi/linux/videodev2.h
 +++ b/4.18.0/include-overrides/uapi/linux/videodev2.h
-@@ -680,6 +680,14 @@ struct v4l2_pix_format {
+@@ -677,9 +677,18 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
+ #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
++#define V4L2_PIX_FMT_Y16I     v4l2_fourcc('Y', '1', '6', 'I') /* Greyscale 16-bit L/R interleaved */
  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
  #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
  #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
@@ -170,5 +204,5 @@ index 082dc1439..0bbea2885 100644
  /* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
  #define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
 -- 
-2.17.1
+2.37.1
 
